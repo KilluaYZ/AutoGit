@@ -51,23 +51,26 @@ class Github:
     
     def check_today_commits(self, repo_name: str):
         url = f"https://api.github.com/repos/{self.username}/{repo_name}/commits"
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        print(f"==> UTC日期: {today}")
         params = {
             'since': f'{today}T00:00:00Z',
             'until': f'{today}T23:59:59Z',
-            'author': self.username
         }
         resp = self.perform_get_request(
             url=url,
             params=params
         )
-        return len(resp) > 0
+        has_commit = len(resp) > 0
+        print(f'==> 今日是否有Commit: {has_commit}')
+        return has_commit
 
     def get_today_committed_repos(self) -> list:
         repos = self.get_repos()
         res = []
         for repo in repos:
             repo_name = repo['name']
+            print(f"=> 正在检查: {repo_name}")
             if(self.check_today_commits(repo_name)):
                 res.append(repo_name)
         return res 
@@ -89,10 +92,11 @@ def main():
     github = Github(
         username=username,
         token=token,
-        repo=repo
-        )
-    print("今天commit的仓库有：")
-    print(github.get_today_committed_repos())
+        repo=repo)
+    commited_repos = github.get_today_committed_repos()
+    print(f"今天commit的仓库有: {commited_repos}")
+    
+    
     
 if __name__ == "__main__":
     main()
